@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { fetchAllJobs } from '../services/companyService';
 
 const JobsDataContext = createContext();
@@ -84,24 +84,24 @@ export const JobsDataProvider = ({ children }) => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [loadJobs]);
 
-  const getJobById = (id) => {
+  const getJobById = useCallback((id) => {
     return jobs.find(job => job.id === parseInt(id)) || null;
-  };
+  }, [jobs]);
 
-  const getJobsByCompany = (companyId) => {
+  const getJobsByCompany = useCallback((companyId) => {
     return jobs.filter(job => job.companyId === companyId);
-  };
+  }, [jobs]);
 
-  const getJobsByCategory = (category) => {
+  const getJobsByCategory = useCallback((category) => {
     return jobs.filter(job => job.category === category);
-  };
+  }, [jobs]);
 
-  const forceRefresh = async () => {
+  const forceRefresh = useCallback(async () => {
     console.log('[JobsDataContext] Force refresh requested');
     await loadJobs(true);
-  };
+  }, [loadJobs]);
 
-  const updateJobApplicationsCount = (jobId, increment = true) => {
+  const updateJobApplicationsCount = useCallback((jobId, increment = true) => {
     console.log(`[JobsDataContext] ${increment ? 'Incrementing' : 'Decrementing'} applications count for job ${jobId}`);
     setJobs(prevJobs =>
       prevJobs.map(job =>
@@ -115,19 +115,19 @@ export const JobsDataProvider = ({ children }) => {
           : job
       )
     );
-  };
+  }, []);
 
-  const getCacheAge = () => {
+  const getCacheAge = useCallback(() => {
     if (!lastFetchTime) return null;
     return Math.floor((Date.now() - lastFetchTime) / 1000); // Age in seconds
-  };
+  }, [lastFetchTime]);
 
-  const isCacheStale = () => {
+  const isCacheStale = useCallback(() => {
     if (!lastFetchTime) return true;
     return (Date.now() - lastFetchTime) >= CACHE_DURATION;
-  };
+  }, [lastFetchTime]);
 
-  const value = {
+  const value = useMemo(() => ({
     jobs,
     loading,
     error,
@@ -141,7 +141,20 @@ export const JobsDataProvider = ({ children }) => {
     isCacheStale,
     lastFetchTime,
     totalJobs: jobs.length
-  };
+  }), [
+    jobs,
+    loading,
+    error,
+    getJobById,
+    getJobsByCompany,
+    getJobsByCategory,
+    loadJobs,
+    forceRefresh,
+    updateJobApplicationsCount,
+    getCacheAge,
+    isCacheStale,
+    lastFetchTime
+  ]);
 
   return (
     <JobsDataContext.Provider value={value}>

@@ -5,9 +5,9 @@ import { AuthProvider } from "./context/AuthContext";
 import { JobProvider } from "./context/JobContext";
 import { CompaniesProvider } from "./contexts/CompaniesContext";
 import { JobsDataProvider } from "./contexts/JobsDataContext";
-import Layout from "./components/Layout";
-import ScrollToTop from "./components/ScrollToTop";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { Layout } from "./components/Layout";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const Home = lazy(() => import("./pages/Home"));
 const Jobs = lazy(() => import("./pages/Jobs"));

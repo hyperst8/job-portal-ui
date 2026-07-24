@@ -1,18 +1,26 @@
 import { useState } from 'react';
 import { useJobsData } from '../contexts/JobsDataContext';
 import { useCompanies } from '../contexts/CompaniesContext';
+import { useTheme } from '../context/ThemeContext';
 
-const RefreshButton = ({ showLabel = true, className = '' }) => {
+export const RefreshButton = ({ showLabel = true, className = '' }) => {
   const { forceRefresh: refreshJobs, getCacheAge: getJobsCacheAge, loading: jobsLoading } = useJobsData();
   const { forceRefresh: refreshCompanies, getCacheAge: getCompaniesCacheAge, loading: companiesLoading } = useCompanies();
+  const { theme } = useTheme();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState(false);
+
+  const isDark = theme === 'dark';
+  const cx = (light, dark) => (isDark ? dark : light);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    setRefreshError(false);
     try {
       await Promise.all([refreshJobs(), refreshCompanies()]);
     } catch (error) {
       console.error('Error refreshing data:', error);
+      setRefreshError(true);
     } finally {
       setTimeout(() => setIsRefreshing(false), 500); // Small delay for visual feedback
     }
@@ -42,7 +50,7 @@ const RefreshButton = ({ showLabel = true, className = '' }) => {
           inline-flex items-center gap-2 px-4 py-2 rounded-lg
           font-medium transition-all duration-200
           ${isLoading
-            ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+            ? cx('bg-gray-300 text-gray-500', 'bg-gray-700 text-gray-400') + ' cursor-not-allowed'
             : 'bg-primary-600 hover:bg-primary-700 text-white shadow-md hover:shadow-lg active:scale-95'
           }
         `}
@@ -69,12 +77,10 @@ const RefreshButton = ({ showLabel = true, className = '' }) => {
       </button>
 
       {showLabel && !isLoading && (
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          Updated {formatCacheAge()}
+        <span className={`text-xs ${cx('text-gray-500', 'text-gray-400')}`}>
+          {refreshError ? 'Refresh failed — showing cached data' : `Updated ${formatCacheAge()}`}
         </span>
       )}
     </div>
   );
 };
-
-export default RefreshButton;

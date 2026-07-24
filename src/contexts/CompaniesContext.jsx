@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { fetchCompanies } from '../services/companyService'
 
 const CompaniesContext = createContext()
@@ -79,31 +79,31 @@ export const CompaniesProvider = ({ children }) => {
     return () => window.removeEventListener('focus', handleFocus)
   }, [loadCompanies])
 
-  const getCompanyByName = (name) => {
+  const getCompanyByName = useCallback((name) => {
     return companies.find(c =>
       c.name.toLowerCase().replace(/[^a-z0-9]/g, '') === name.toLowerCase().replace(/[^a-z0-9]/g, '')
     ) || null
-  }
+  }, [companies])
 
-  const getCompanyById = (id) => {
+  const getCompanyById = useCallback((id) => {
     return companies.find(c => c.id === id) || null
-  }
+  }, [companies])
 
-  const forceRefresh = async () => {
+  const forceRefresh = useCallback(async () => {
     await loadCompanies(true)
-  }
+  }, [loadCompanies])
 
-  const getCacheAge = () => {
+  const getCacheAge = useCallback(() => {
     if (!lastFetchTime) return null
     return Math.floor((Date.now() - lastFetchTime) / 1000) // Age in seconds
-  }
+  }, [lastFetchTime])
 
-  const isCacheStale = () => {
+  const isCacheStale = useCallback(() => {
     if (!lastFetchTime) return true
     return (Date.now() - lastFetchTime) >= CACHE_DURATION
-  }
+  }, [lastFetchTime])
 
-  const value = {
+  const value = useMemo(() => ({
     companies,
     loading,
     error,
@@ -114,7 +114,18 @@ export const CompaniesProvider = ({ children }) => {
     getCacheAge,
     isCacheStale,
     lastFetchTime
-  }
+  }), [
+    companies,
+    loading,
+    error,
+    getCompanyByName,
+    getCompanyById,
+    loadCompanies,
+    forceRefresh,
+    getCacheAge,
+    isCacheStale,
+    lastFetchTime
+  ])
 
   return (
     <CompaniesContext.Provider value={value}>

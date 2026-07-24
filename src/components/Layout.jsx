@@ -1,10 +1,14 @@
 import { Outlet } from 'react-router-dom'
-import Navbar from './Navbar'
-import Footer from './Footer'
+import { Navbar } from './Navbar'
+import { Footer } from './Footer'
+import { useTheme } from '../context/ThemeContext'
 
-const Layout = () => {
+export const Layout = () => {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+    <div className={`min-h-screen transition-colors ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
       <Navbar />
       <main>
         <Outlet />
@@ -13,5 +17,3 @@ const Layout = () => {
     </div>
   )
 }
-
-export default Layout
