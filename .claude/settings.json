@@ -2,6 +2,9 @@
   "enabledPlugins": {
     "commit-commands@claude-plugins-official": true
   },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "0" // By default, this is set to 0. Set it to 1 to enable the experimental agent teams feature.
+  },
   "hooks": {
     "Notification": [
       {
